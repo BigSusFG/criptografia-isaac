@@ -1,0 +1,38 @@
+---
+import { ArrowLeft, CheckCircle2, FileCode2, Info } from "lucide-react";
+import Header from "../../components/Header.astro";
+import PracticeZeroDemo from "../../components/practices/PracticeZeroDemo";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const pythonSource = `def transformar(texto: str) -> str:
+    """Invierte el texto para comprobar la ejecución."""
+    return texto[::-1]
+
+resultado = transformar(texto)`;
+const rawBase = import.meta.env.BASE_URL;
+const base = rawBase.endsWith("/") ? rawBase : `${rawBase}/`;
+---
+
+<BaseLayout title="Práctica 00 · Criptografía">
+  <main class="min-h-screen bg-[#0a0908] text-[#f7f3ed]">
+    <Header />
+    <section class="relative overflow-hidden border-b border-orange-100/10 px-5 pb-14 pt-32 md:px-8 md:pb-20">
+      <div class="cipher-grid absolute inset-0 opacity-25"></div>
+      <div class="relative mx-auto max-w-7xl">
+        <a href={`${base}#practicas`} class="mb-12 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-stone-500 transition hover:text-orange-300"><ArrowLeft size={16} /> Volver al archivo</a>
+        <div class="grid gap-9 lg:grid-cols-[0.24fr_1fr] lg:items-end">
+          <div class="font-mono text-[clamp(5rem,14vw,11rem)] font-light leading-none tracking-[-0.1em] text-orange-400">00</div>
+          <div><div class="mb-5 flex flex-wrap gap-2"><span class="rounded-full border border-orange-300/25 bg-orange-300/10 px-2.5 py-1 text-xs text-orange-200">Python</span><span class="rounded-full border border-orange-100/15 px-2.5 py-1 text-xs text-stone-300">Pyodide</span><span class="rounded-full border border-orange-100/15 px-2.5 py-1 text-xs text-stone-300">Prueba técnica</span></div><h1 class="max-w-4xl text-balance text-4xl font-semibold leading-[0.98] tracking-[-0.05em] sm:text-6xl lg:text-7xl">Python dentro del navegador</h1><p class="mt-6 max-w-2xl text-base leading-7 text-stone-500">La interfaz envía texto a Python, ejecuta una función con Pyodide y recupera el resultado sin levantar un servidor.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-7xl px-5 py-14 md:px-8 md:py-20">
+      <PracticeZeroDemo client:load />
+      <div class="mt-6 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+        <article class="overflow-hidden rounded-[1.5rem] border border-orange-100/10 bg-[#100d0a]"><div class="flex items-center justify-between border-b border-orange-100/10 px-5 py-4"><div class="flex items-center gap-2 text-sm text-stone-300"><FileCode2 className="text-orange-400" size={16} /><span class="font-mono text-xs">python/practica_00.py</span></div><span class="font-mono text-[10px] uppercase tracking-widest text-stone-700">Python</span></div><pre class="overflow-x-auto p-5 text-sm leading-7 text-stone-300 sm:p-7"><code>{pythonSource}</code></pre></article>
+        <aside class="rounded-[1.5rem] border border-orange-100/10 bg-orange-300/[0.025] p-6 sm:p-8"><p class="font-mono text-[10px] uppercase tracking-[0.2em] text-orange-400">Qué valida</p><ul class="mt-7 space-y-5">{["La interfaz carga el intérprete de Python.", "El texto se entrega como una variable segura.", "Python procesa y devuelve el resultado.", "La base queda lista para algoritmos criptográficos."].map((item) => <li class="flex gap-3 text-sm leading-6 text-stone-500"><CheckCircle2 className="mt-0.5 shrink-0 text-orange-400" size={16} />{item}</li>)}</ul><div class="mt-7 flex gap-3 border-t border-orange-100/10 pt-6 text-xs leading-5 text-stone-600"><Info className="mt-0.5 shrink-0 text-orange-400" size={16} />Invertir texto solo prueba la integración; no se presenta como un método de cifrado.</div></aside>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
