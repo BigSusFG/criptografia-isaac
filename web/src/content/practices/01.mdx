@@ -1,0 +1,29 @@
+---
+title: "Práctica 01"
+description: "Círculo BMP relleno y desplazamiento modular de imágenes."
+tags:
+  - Python
+  - BMP
+  - RGB
+  - Módulo 256
+order: 1
+status: "completed"
+---
+
+## Objetivo
+
+Crear una imagen BMP de 24 bits con un círculo relleno y aplicar un
+desplazamiento entre 0 y 255 a cada canal RGB, tanto del BMP como de una imagen
+cargada por el usuario.
+
+## Desarrollo
+
+El usuario define ancho, alto, radio, color de fondo y color del círculo. El
+programa construye la cabecera y los píxeles del BMP. También acepta formatos
+de imagen compatibles con el navegador y genera un segundo archivo con la
+operación `(canal + desplazamiento) mod 256`.
+
+## Resultado
+
+La página compara el original y el resultado, y permite descargar los BMP o la
+imagen procesada en PNG.

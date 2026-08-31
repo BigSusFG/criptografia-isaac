@@ -1,5 +1,5 @@
 ---
-import { ArrowRight, Binary, Check, Clock, Code2, Fingerprint, KeyRound, LockKeyhole } from "lucide-react";
+import { ArrowRight, Binary, Check, CircleDot, Code2, FileText, Fingerprint, KeyRound, LockKeyhole } from "lucide-react";
 import Header from "../components/Header.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 
@@ -57,12 +57,19 @@ const base = rawBase.endsWith("/") ? rawBase : `${rawBase}/`;
           <span class="grid size-11 place-items-center rounded-full border border-orange-300/20 text-orange-300 transition group-hover:translate-x-1 group-hover:border-orange-300/60 group-hover:bg-orange-400 group-hover:text-[#160d07]"><ArrowRight size={20} /></span>
         </a>
 
-        <div class="grid gap-5 border-b border-orange-100/10 py-7 opacity-55 sm:px-4 md:grid-cols-[90px_150px_1fr_auto] md:items-center md:py-9">
+        <a href={`${base}practicas/01`} class="group grid gap-5 border-b border-orange-100/10 py-7 transition hover:bg-orange-400/[0.045] sm:px-4 md:grid-cols-[90px_150px_1fr_auto] md:items-center md:py-9">
           <span class="font-mono text-4xl font-light tracking-[-0.08em] text-stone-600">01</span>
-          <span class="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-stone-600"><Clock size={14} /> Pendiente</span>
-          <div><h3 class="text-xl font-semibold tracking-[-0.025em] text-stone-400 sm:text-2xl">Primera práctica</h3><p class="mt-2 text-sm leading-6 text-stone-600">Se agregará cuando estén definidos los requisitos de la clase.</p></div>
-          <span class="font-mono text-[10px] uppercase tracking-wider text-stone-700">Próximamente</span>
-        </div>
+          <span class="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-300"><Check size={14} /> Disponible</span>
+          <div><h3 class="text-xl font-semibold tracking-[-0.025em] transition group-hover:text-orange-200 sm:text-2xl">Círculo relleno y desplazamiento RGB</h3><p class="mt-2 max-w-2xl text-sm leading-6 text-stone-500">Crea un BMP relleno o carga otra imagen para desplazar sus canales de color entre 0 y 255.</p></div>
+          <span class="grid size-11 place-items-center rounded-full border border-orange-300/20 text-orange-300 transition group-hover:translate-x-1 group-hover:border-orange-300/60 group-hover:bg-orange-400 group-hover:text-[#160d07]"><CircleDot size={20} /></span>
+        </a>
+
+        <a href={`${base}practicas/02`} class="group grid gap-5 border-b border-orange-100/10 py-7 transition hover:bg-orange-400/[0.045] sm:px-4 md:grid-cols-[90px_150px_1fr_auto] md:items-center md:py-9">
+          <span class="font-mono text-4xl font-light tracking-[-0.08em] text-stone-600">02</span>
+          <span class="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-300"><Check size={14} /> Disponible</span>
+          <div><h3 class="text-xl font-semibold tracking-[-0.025em] transition group-hover:text-orange-200 sm:text-2xl">Cifrado César desde archivo TXT</h3><p class="mt-2 max-w-2xl text-sm leading-6 text-stone-500">Carga texto, desplaza sus letras n posiciones y descarga la salida.</p></div>
+          <span class="grid size-11 place-items-center rounded-full border border-orange-300/20 text-orange-300 transition group-hover:translate-x-1 group-hover:border-orange-300/60 group-hover:bg-orange-400 group-hover:text-[#160d07]"><FileText size={20} /></span>
+        </a>
 
         <div class="grid gap-5 border-b border-dashed border-orange-100/10 py-7 sm:px-4 md:grid-cols-[90px_150px_1fr_auto] md:items-center md:py-9">
           <span class="font-mono text-4xl font-light text-stone-800">+</span><span class="font-mono text-[10px] uppercase tracking-[0.18em] text-stone-700">Plantilla</span><div><h3 class="text-xl font-medium text-stone-500">Preparado para nuevas entradas</h3><p class="mt-2 text-sm text-stone-700">Cada práctica futura reutilizará esta misma estructura.</p></div><Binary className="text-stone-700" size={20} />

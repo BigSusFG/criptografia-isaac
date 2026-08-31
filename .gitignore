@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+web/node_modules/
+
+# Production
+dist/
+web/dist/
+
+# Build and cache
+.astro/
+web/.astro/
+.cache/
+web/.cache/
+
+# IDE / OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Env files
+.env
+.env*.local
