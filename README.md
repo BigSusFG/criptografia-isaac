@@ -5,6 +5,15 @@ La interfaz está desarrollada con Astro, Tailwind CSS, React y TypeScript. Los
 ejercicios se escriben en Python y se ejecutan directamente en el navegador con
 Pyodide.
 
+Las primeras prácticas simulan un intercambio entre Alicia y Betito:
+
+- **Práctica 01:** Alicia cifra un corazón BMP con una clave independiente para
+  R, G y B y genera `img_c.bmp`; Betito resta la misma clave y obtiene
+  `img_c_d.bmp`.
+- **Práctica 02:** Alicia cifra una canción TXT mediante César y genera
+  `song_c.txt`; Betito aplica el desplazamiento inverso y genera
+  `song_c_d.txt`.
+
 ## Ejecutar localmente
 
 ```bash

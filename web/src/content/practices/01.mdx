@@ -1,6 +1,6 @@
 ---
 title: "Práctica 01"
-description: "Círculo BMP relleno y desplazamiento modular de imágenes."
+description: "Cifrado y descifrado RGB de un corazón en formato BMP."
 tags:
   - Python
   - BMP
@@ -12,18 +12,21 @@ status: "completed"
 
 ## Objetivo
 
-Crear una imagen BMP de 24 bits con un círculo relleno y aplicar un
-desplazamiento entre 0 y 255 a cada canal RGB, tanto del BMP como de una imagen
-cargada por el usuario.
+Simular el intercambio de una imagen cifrada entre Alicia y Betito. Alicia crea
+un corazón relleno en un BMP de 24 bits y cifra por separado sus canales R, G y
+B. Betito recibe el archivo y aplica los desplazamientos inversos.
 
 ## Desarrollo
 
-El usuario define ancho, alto, radio, color de fondo y color del círculo. El
-programa construye la cabecera y los píxeles del BMP. También acepta formatos
-de imagen compatibles con el navegador y genera un segundo archivo con la
-operación `(canal + desplazamiento) mod 256`.
+Alicia define ancho, alto, escala, color de fondo y color del corazón. Después
+selecciona tres valores entre 0 y 255 que forman la clave RGB. El cifrado aplica
+`(canal + clave) mod 256` y produce `img_c.bmp`.
+
+La clave se comunica verbalmente. Betito carga el archivo recibido y aplica
+`(canal cifrado - clave) mod 256`.
 
 ## Resultado
 
-La página compara el original y el resultado, y permite descargar los BMP o la
-imagen procesada en PNG.
+La página permite comparar la imagen base, `img_c.bmp` y la imagen recuperada
+`img_c_d.bmp`. El archivo cifrado debe compartirse como documento para evitar
+que una aplicación de mensajería comprima y modifique sus píxeles.

@@ -1,6 +1,6 @@
 ---
 title: "Práctica 02"
-description: "Cifrado César de archivos TXT mediante un desplazamiento configurable."
+description: "Cifrado y descifrado César de una canción entre Alicia y Betito."
 tags:
   - Python
   - Pyodide
@@ -12,8 +12,15 @@ status: "completed"
 
 ## Objetivo
 
-Leer un archivo de texto y desplazar sus letras un número configurable de posiciones dentro del alfabeto.
+Simular el intercambio de una canción cifrada. Alicia carga un archivo TXT,
+desplaza sus letras y genera `song_c.txt`. Betito recibe ese archivo y recupera
+la canción en `song_c_d.txt`.
 
 ## Implementación
 
-El algoritmo conserva mayúsculas, minúsculas y caracteres no alfabéticos, y utiliza aritmética modular para volver al inicio del alfabeto.
+La página no permite escribir el texto: ambos participantes deben cargar su
+archivo TXT. Alicia cifra mediante `(posición + n) mod 26`; Betito introduce el
+mismo valor comunicado verbalmente y aplica `(posición - n) mod 26`.
+
+El algoritmo conserva mayúsculas, minúsculas, espacios, saltos de línea,
+números, acentos y signos de puntuación.

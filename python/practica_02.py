@@ -14,8 +14,23 @@ def cifrar_cesar(texto: str, desplazamiento: int) -> str:
     return "".join(desplazar_caracter(caracter, desplazamiento) for caracter in texto)
 
 
-def generar_resultado(texto: str, desplazamiento: int) -> str:
-    salida = cifrar_cesar(texto, desplazamiento)
+def descifrar_cesar(texto_cifrado: str, desplazamiento: int) -> str:
+    """Recupera el texto restando el desplazamiento comunicado por Alicia."""
+    return "".join(
+        desplazar_caracter(caracter, -desplazamiento)
+        for caracter in texto_cifrado
+    )
+
+
+def generar_resultado(texto: str, desplazamiento: int, operacion: str) -> str:
+    if operacion not in {"cifrar", "descifrar"}:
+        raise ValueError("La operación debe ser 'cifrar' o 'descifrar'.")
+
+    salida = (
+        cifrar_cesar(texto, desplazamiento)
+        if operacion == "cifrar"
+        else descifrar_cesar(texto, desplazamiento)
+    )
     letras = sum(caracter.isascii() and caracter.isalpha() for caracter in texto)
     return json.dumps(
         {
@@ -23,6 +38,7 @@ def generar_resultado(texto: str, desplazamiento: int) -> str:
             "desplazamiento_efectivo": desplazamiento % 26,
             "letras_transformadas": letras,
             "caracteres_totales": len(texto),
+            "operacion": operacion,
         },
         ensure_ascii=False,
     )

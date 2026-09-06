@@ -11,6 +11,8 @@ web/dist/
 web/.astro/
 .cache/
 web/.cache/
+__pycache__/
+*.py[cod]
 
 # IDE / OS files
 .DS_Store
