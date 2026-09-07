@@ -1,227 +1,47 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Download,
   FileKey2,
   FileText,
   KeyRound,
-  LoaderCircle,
   LockKeyhole,
   Music2,
   Play,
   RotateCcw,
   Send,
   ShieldCheck,
-  Upload,
   UserRoundCheck,
 } from "lucide-react";
-
-type PyodideRuntime = {
-  globals: { set: (name: string, value: unknown) => void };
-  runPython: (code: string) => unknown;
-};
-
-declare global {
-  interface Window {
-    loadPyodide?: (options: { indexURL: string }) => Promise<PyodideRuntime>;
-  }
-}
+import FileDrop from "../ui/FileDrop";
+import RuntimeStatus, { type RuntimeState } from "../ui/RuntimeStatus";
+import { AlphabetShiftControl } from "../ui/ShiftControls";
+import {
+  Metrics,
+  TextPreview,
+  textPreviewClass,
+  type CipherMetrics,
+} from "../ui/TextPanels";
+import { downloadText, readTextFile } from "../../lib/files";
+import {
+  loadPythonRuntime,
+  type PyodideRuntime,
+} from "../../lib/pyodide";
+import pythonSource from "../../python/practica_02.py?raw";
 
 type TextFile = { name: string; text: string };
-type CipherResult = {
+type CipherResult = CipherMetrics & {
   salida: string;
-  desplazamiento_efectivo: number;
-  letras_transformadas: number;
-  caracteres_totales: number;
   operacion: "cifrar" | "descifrar";
 };
 
-const PYODIDE_VERSION = "v314.0.6";
-const PYODIDE_BASE = `https://cdn.jsdelivr.net/pyodide/${PYODIDE_VERSION}/full/`;
 const buttonClass =
   "inline-flex h-11 items-center justify-center gap-2 rounded-full bg-orange-400 px-5 text-sm font-semibold text-[#160d07] transition hover:bg-orange-300 disabled:cursor-not-allowed disabled:opacity-40";
-const previewClass =
-  "mt-3 min-h-64 w-full resize-y rounded-xl border border-orange-100/10 bg-[#0a0908] px-4 py-3 font-mono text-sm leading-6 text-stone-300 outline-none";
-
-const PYTHON_SOURCE = String.raw`
-import json
-
-def desplazar_caracter(caracter, desplazamiento):
-    if "A" <= caracter <= "Z":
-        origen = ord("A")
-        return chr((ord(caracter) - origen + desplazamiento) % 26 + origen)
-    if "a" <= caracter <= "z":
-        origen = ord("a")
-        return chr((ord(caracter) - origen + desplazamiento) % 26 + origen)
-    return caracter
-
-direccion = 1 if operacion == "cifrar" else -1
-salida = "".join(
-    desplazar_caracter(caracter, direccion * desplazamiento)
-    for caracter in texto_entrada
-)
-json.dumps({
-    "salida": salida,
-    "desplazamiento_efectivo": desplazamiento % 26,
-    "letras_transformadas": sum(
-        caracter.isascii() and caracter.isalpha()
-        for caracter in texto_entrada
-    ),
-    "caracteres_totales": len(texto_entrada),
-    "operacion": operacion,
-}, ensure_ascii=False)
-`;
-
-function readTextFile(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error("No fue posible leer el archivo TXT."));
-    reader.readAsText(file, "UTF-8");
-  });
-}
-
-function downloadText(content: string, filename: string) {
-  const url = URL.createObjectURL(
-    new Blob([content], { type: "text/plain;charset=utf-8" }),
-  );
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-function ShiftControl({
-  id,
-  value,
-  onChange,
-  operation,
-}: {
-  id: string;
-  value: number;
-  onChange: (value: number) => void;
-  operation: "cifrar" | "descifrar";
-}) {
-  return (
-    <div className="rounded-2xl border border-orange-100/10 bg-[#0a0908] p-5">
-      <div className="flex items-center justify-between">
-        <label htmlFor={id} className="font-mono text-xs text-stone-500">
-          Desplazamiento n
-        </label>
-        <input
-          type="number"
-          min={0}
-          max={25}
-          value={value}
-          onChange={(event) =>
-            onChange(
-              Math.min(
-                25,
-                Math.max(0, Number.parseInt(event.target.value || "0", 10)),
-              ),
-            )
-          }
-          className="h-9 w-20 rounded-lg border border-orange-100/10 bg-[#100d0a] text-center font-mono text-orange-300 outline-none focus:border-orange-400"
-          aria-label={`Desplazamiento para ${operation}`}
-        />
-      </div>
-      <input
-        id={id}
-        type="range"
-        min={0}
-        max={25}
-        step={1}
-        value={value}
-        onChange={(event) => onChange(Number.parseInt(event.target.value, 10))}
-        className="mt-7 w-full accent-orange-400"
-      />
-      <div className="mt-3 flex justify-between font-mono text-[9px] text-stone-700">
-        <span>0</span>
-        <span>13</span>
-        <span>25</span>
-      </div>
-      <p className="mt-4 border-t border-orange-100/10 pt-4 font-mono text-[11px] leading-5 text-stone-600">
-        {operation === "cifrar"
-          ? `Cifrado: posición nueva = (posición + ${value}) mod 26`
-          : `Descifrado: posición original = (posición − ${value}) mod 26`}
-      </p>
-    </div>
-  );
-}
-
-function FileDrop({
-  actor,
-  filename,
-  hint,
-  onFile,
-}: {
-  actor: string;
-  filename: string | null;
-  hint: string;
-  onFile: (file: File | undefined) => void;
-}) {
-  return (
-    <label className="grid min-h-44 cursor-pointer place-items-center rounded-2xl border border-dashed border-orange-300/25 bg-[#0a0908] p-7 text-center transition hover:border-orange-300/60">
-      <input
-        type="file"
-        accept=".txt,text/plain"
-        className="sr-only"
-        onChange={(event) => void onFile(event.target.files?.[0])}
-      />
-      <span>
-        <Upload className="mx-auto size-8 text-orange-400" />
-        <span className="mt-4 block font-medium text-stone-200">
-          {filename ?? actor}
-        </span>
-        <span className="mt-2 block text-xs leading-5 text-stone-600">{hint}</span>
-      </span>
-    </label>
-  );
-}
-
-function TextPreview({
-  label,
-  text,
-  placeholder,
-  highlight = false,
-}: {
-  label: string;
-  text: string;
-  placeholder: string;
-  highlight?: boolean;
-}) {
-  return (
-    <label className="block font-mono text-xs uppercase tracking-[0.14em] text-stone-600">
-      {label}
-      <textarea
-        value={text}
-        readOnly
-        placeholder={placeholder}
-        className={`${previewClass} ${highlight ? "text-orange-100" : ""}`}
-      />
-    </label>
-  );
-}
-
-function Metrics({ value }: { value: CipherResult | null }) {
-  if (!value) return null;
-  return (
-    <div className="flex flex-wrap gap-2 font-mono text-[10px] text-stone-500">
-      <span>{value.letras_transformadas} letras</span>
-      <span>·</span>
-      <span>{value.caracteres_totales} caracteres</span>
-      <span>·</span>
-      <span>n: {value.desplazamiento_efectivo}</span>
-    </div>
-  );
-}
+const RUN_CIPHER_CALL =
+  "generar_resultado(texto_entrada, desplazamiento, operacion)";
 
 export default function PracticeTwoDemo() {
   const runtimeRef = useRef<PyodideRuntime | null>(null);
-  const initializingRef = useRef(false);
-  const [status, setStatus] = useState<"loading" | "ready" | "running" | "error">(
-    "loading",
-  );
+  const [status, setStatus] = useState<RuntimeState>("loading");
   const [aliciaFile, setAliciaFile] = useState<TextFile | null>(null);
   const [betitoFile, setBetitoFile] = useState<TextFile | null>(null);
   const [encryptShift, setEncryptShift] = useState(3);
@@ -232,45 +52,26 @@ export default function PracticeTwoDemo() {
   const [decryptMetrics, setDecryptMetrics] = useState<CipherResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const initializePython = useCallback(async () => {
-    if (runtimeRef.current || initializingRef.current || !window.loadPyodide) return;
-    initializingRef.current = true;
-    try {
-      runtimeRef.current = await window.loadPyodide({ indexURL: PYODIDE_BASE });
-      setStatus("ready");
-    } catch {
-      setStatus("error");
-      setError("No fue posible cargar Python. Revisa tu conexión e intenta nuevamente.");
-    } finally {
-      initializingRef.current = false;
-    }
-  }, []);
-
   useEffect(() => {
-    const existing = document.querySelector<HTMLScriptElement>(
-      "script[data-pyodide-loader]",
-    );
-    const onLoad = () => void initializePython();
-    if (window.loadPyodide) {
-      queueMicrotask(onLoad);
-      return;
-    }
-    if (existing) {
-      existing.addEventListener("load", onLoad);
-      return () => existing.removeEventListener("load", onLoad);
-    }
-    const script = document.createElement("script");
-    script.src = `${PYODIDE_BASE}pyodide.js`;
-    script.async = true;
-    script.dataset.pyodideLoader = "true";
-    script.addEventListener("load", onLoad);
-    script.addEventListener("error", () => {
-      setStatus("error");
-      setError("No fue posible descargar Pyodide.");
-    });
-    document.head.appendChild(script);
-    return () => script.removeEventListener("load", onLoad);
-  }, [initializePython]);
+    let cancelled = false;
+
+    void loadPythonRuntime()
+      .then((runtime) => {
+        if (cancelled) return;
+        runtime.runPython(pythonSource);
+        runtimeRef.current = runtime;
+        setStatus("ready");
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setStatus("error");
+        setError("No fue posible cargar Python. Revisa tu conexión e intenta nuevamente.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function selectTextFile(
     file: File | undefined,
@@ -329,7 +130,7 @@ export default function PracticeTwoDemo() {
       runtime.globals.set("desplazamiento", shift);
       runtime.globals.set("operacion", operation);
       const parsed = JSON.parse(
-        String(runtime.runPython(PYTHON_SOURCE)),
+        String(runtime.runPython(RUN_CIPHER_CALL)),
       ) as CipherResult;
       if (operation === "cifrar") {
         setEncryptedText(parsed.salida);
@@ -366,14 +167,6 @@ export default function PracticeTwoDemo() {
   }
 
   const busy = status === "loading" || status === "running";
-  const statusLabel =
-    status === "ready"
-      ? "Python listo"
-      : status === "running"
-        ? "Procesando texto"
-        : status === "error"
-          ? "Error"
-          : "Cargando Python";
 
   return (
     <div className="space-y-8">
@@ -387,22 +180,7 @@ export default function PracticeTwoDemo() {
               Cargar la canción y generar song_c.txt
             </h2>
           </div>
-          <div
-            className={`flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider ${
-              status === "ready"
-                ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-200"
-                : status === "error"
-                  ? "border-red-300/25 bg-red-300/10 text-red-200"
-                  : "border-orange-300/20 bg-orange-300/5 text-orange-200"
-            }`}
-          >
-            {busy ? (
-              <LoaderCircle className="size-3 animate-spin" />
-            ) : (
-              <span className="size-1.5 rounded-full bg-current" />
-            )}
-            {statusLabel}
-          </div>
+          <RuntimeStatus status={status} runningLabel="Procesando texto" />
         </div>
 
         <div className="grid gap-px bg-orange-100/10 lg:grid-cols-[1fr_0.9fr]">
@@ -412,14 +190,15 @@ export default function PracticeTwoDemo() {
               Archivo de canción de Alicia
             </div>
             <FileDrop
-              actor="Seleccionar canción .txt"
+              accept=".txt,text/plain"
+              emptyLabel="Seleccionar canción .txt"
               filename={aliciaFile?.name ?? null}
               hint="Solo archivos TXT en UTF-8 · máximo 1 MB"
               onFile={(file) => void selectTextFile(file, "alicia")}
             />
           </div>
           <div className="bg-[#0e0c09] p-6 sm:p-8">
-            <ShiftControl
+            <AlphabetShiftControl
               id="alicia-shift"
               value={encryptShift}
               onChange={(value) => {
@@ -458,7 +237,7 @@ export default function PracticeTwoDemo() {
               value={encryptedText}
               readOnly
               placeholder="Aquí aparecerá el contenido de song_c.txt."
-              className={`${previewClass} mt-0 text-orange-100`}
+              className={`${textPreviewClass} text-orange-100`}
               aria-label="Canción cifrada"
             />
             <button
@@ -519,14 +298,15 @@ export default function PracticeTwoDemo() {
               Archivo recibido por Betito
             </div>
             <FileDrop
-              actor="Seleccionar song_c.txt"
+              accept=".txt,text/plain"
+              emptyLabel="Seleccionar song_c.txt"
               filename={betitoFile?.name ?? null}
               hint="Archivo cifrado recibido de Alicia · máximo 1 MB"
               onFile={(file) => void selectTextFile(file, "betito")}
             />
           </div>
           <div className="bg-[#0e0c09] p-6 sm:p-8">
-            <ShiftControl
+            <AlphabetShiftControl
               id="betito-shift"
               value={decryptShift}
               onChange={(value) => {
@@ -571,7 +351,7 @@ export default function PracticeTwoDemo() {
               value={decryptedText}
               readOnly
               placeholder="Aquí aparecerá el contenido de song_c_d.txt."
-              className={`${previewClass} mt-0 text-emerald-100`}
+              className={`${textPreviewClass} text-emerald-100`}
               aria-label="Canción descifrada"
             />
             <button

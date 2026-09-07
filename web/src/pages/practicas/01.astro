@@ -3,21 +3,8 @@ import { ArrowLeft, CheckCircle2, FileCode2, Info } from "lucide-react";
 import Header from "../../components/Header.astro";
 import PracticeOneDemo from "../../components/practices/PracticeOneDemo";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import pythonSource from "../../python/practica_01.py?raw";
 
-const pythonSource = `def desplazar_color(color, clave, direccion=1):
-    return tuple(
-        (canal + direccion * desplazamiento) % 256
-        for canal, desplazamiento in zip(color, clave)
-    )
-
-def pertenece_al_corazon(x, y, centro_x, centro_y, escala):
-    normal_x = (x - centro_x) / escala
-    normal_y = (centro_y - y) / escala
-    base = normal_x ** 2 + normal_y ** 2 - 1
-    return base ** 3 - normal_x ** 2 * normal_y ** 3 <= 0
-
-# Alicia cifra:  canal_c = (canal + clave) % 256
-# Betito descifra: canal_d = (canal_c - clave) % 256`;
 const rawBase = import.meta.env.BASE_URL;
 const base = rawBase.endsWith("/") ? rawBase : `${rawBase}/`;
 ---
@@ -44,8 +31,8 @@ const base = rawBase.endsWith("/") ? rawBase : `${rawBase}/`;
       <PracticeOneDemo client:load />
       <div class="mt-8 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <article class="overflow-hidden rounded-[1.5rem] border border-orange-100/10 bg-[#100d0a]">
-          <div class="flex items-center justify-between border-b border-orange-100/10 px-5 py-4"><div class="flex items-center gap-2 text-sm text-stone-300"><FileCode2 className="text-orange-400" size={16} /><span class="font-mono text-xs">python/practica_01.py</span></div><span class="font-mono text-[10px] uppercase tracking-widest text-stone-700">Núcleo del algoritmo</span></div>
-          <pre class="overflow-x-auto p-5 text-sm leading-7 text-stone-300 sm:p-7"><code>{pythonSource}</code></pre>
+          <div class="flex items-center justify-between border-b border-orange-100/10 px-5 py-4"><div class="flex items-center gap-2 text-sm text-stone-300"><FileCode2 className="text-orange-400" size={16} /><span class="font-mono text-xs">web/src/python/practica_01.py</span></div><span class="font-mono text-[10px] uppercase tracking-widest text-stone-700">Python ejecutado</span></div>
+          <pre class="max-h-[38rem] overflow-auto p-5 text-sm leading-7 text-stone-300 sm:p-7"><code>{pythonSource}</code></pre>
         </article>
         <aside class="rounded-[1.5rem] border border-orange-100/10 bg-orange-300/[0.025] p-6 sm:p-8">
           <p class="font-mono text-[10px] uppercase tracking-[0.2em] text-orange-400">Proceso</p>
