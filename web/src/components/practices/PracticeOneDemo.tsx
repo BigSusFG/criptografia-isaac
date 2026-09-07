@@ -1,37 +1,35 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  Download,
   Heart,
-  ImageIcon,
   KeyRound,
-  LoaderCircle,
   LockKeyhole,
   Play,
   RotateCcw,
   Send,
-  SlidersHorizontal,
-  Upload,
   UserRoundCheck,
 } from "lucide-react";
+import FileDrop from "../ui/FileDrop";
+import ImagePreviewPanel, {
+  type GeneratedImage,
+} from "../ui/ImagePreviewPanel";
+import RuntimeStatus, { type RuntimeState } from "../ui/RuntimeStatus";
+import {
+  DEFAULT_RGB_SHIFT,
+  RgbShiftControl,
+  type RgbShift,
+} from "../ui/ShiftControls";
+import { bytesToBase64, loadImage, readAsDataUrl } from "../../lib/files";
+import {
+  loadPythonRuntime,
+  type PyodideRuntime,
+} from "../../lib/pyodide";
+import pythonSource from "../../python/practica_01.py?raw";
 
-type PyodideRuntime = {
-  globals: { set: (name: string, value: unknown) => void };
-  runPython: (code: string) => unknown;
-};
-
-declare global {
-  interface Window {
-    loadPyodide?: (options: { indexURL: string }) => Promise<PyodideRuntime>;
-  }
-}
-
-type GeneratedImage = { url: string; filename: string };
 type UploadedImage = GeneratedImage & {
   width: number;
   height: number;
   pixelsBase64: string;
 };
-type RgbShift = { r: number; g: number; b: number };
 type HeartResult = {
   original: string;
   cifrada: string;
@@ -40,293 +38,39 @@ type HeartResult = {
   pixeles_corazon: number;
 };
 
-const PYODIDE_VERSION = "v314.0.6";
-const PYODIDE_BASE = `https://cdn.jsdelivr.net/pyodide/${PYODIDE_VERSION}/full/`;
-const DEFAULT_KEY: RgbShift = { r: 40, g: 80, b: 120 };
 const buttonClass =
   "inline-flex h-11 items-center justify-center gap-2 rounded-full bg-orange-400 px-5 text-sm font-semibold text-[#160d07] transition hover:bg-orange-300 disabled:cursor-not-allowed disabled:opacity-40";
 const fieldClass =
   "h-11 w-full rounded-xl border border-orange-100/10 bg-[#0a0908] px-3 font-mono text-stone-100 outline-none transition focus:border-orange-400";
-
-const HEART_SOURCE = String.raw`
-import base64
-import json
-import struct
-
-def convertir_hex(color):
-    color = color.lstrip("#")
-    return tuple(int(color[indice:indice + 2], 16) for indice in (0, 2, 4))
-
-def desplazar_color(color, clave, direccion=1):
-    return tuple(
-        (canal + direccion * desplazamiento) % 256
-        for canal, desplazamiento in zip(color, clave)
-    )
-
-def crear_mascara_corazon(ancho, alto, escala):
-    centro_x = (ancho - 1) / 2
-    centro_y = (alto - 1) / 2
-    mascara = []
-    pixeles_rellenos = 0
-    for y in range(alto):
-        fila = bytearray(ancho)
-        normal_y = (centro_y - y) / escala
-        for x in range(ancho):
-            normal_x = (x - centro_x) / escala
-            base = normal_x * normal_x + normal_y * normal_y - 1
-            if base ** 3 - normal_x * normal_x * normal_y ** 3 <= 0:
-                fila[x] = 1
-                pixeles_rellenos += 1
-        mascara.append(fila)
-    return mascara, pixeles_rellenos
-
-def construir_bmp(ancho, alto, fondo, corazon, mascara, clave=(0, 0, 0)):
-    bytes_por_fila = ancho * 3
-    relleno = (4 - bytes_por_fila % 4) % 4
-    tamano_pixeles = (bytes_por_fila + relleno) * alto
-    cabecera = struct.pack("<2sIHHI", b"BM", 54 + tamano_pixeles, 0, 0, 54)
-    informacion = struct.pack("<IIIHHIIIIII", 40, ancho, alto, 1, 24, 0, tamano_pixeles, 2835, 2835, 0, 0)
-    pixeles = bytearray()
-    for y in range(alto - 1, -1, -1):
-        for x in range(ancho):
-            color = corazon if mascara[y][x] else fondo
-            rojo, verde, azul = desplazar_color(color, clave)
-            pixeles.extend((azul, verde, rojo))
-        pixeles.extend(b"\x00" * relleno)
-    return cabecera + informacion + pixeles
-
-fondo = convertir_hex(color_fondo)
-corazon = convertir_hex(color_corazon)
-clave = (desplazamiento_r, desplazamiento_g, desplazamiento_b)
-mascara, pixeles_rellenos = crear_mascara_corazon(ancho, alto, escala)
-original = construir_bmp(ancho, alto, fondo, corazon, mascara)
-cifrada = construir_bmp(ancho, alto, fondo, corazon, mascara, clave)
-json.dumps({
-    "original": base64.b64encode(original).decode("ascii"),
-    "cifrada": base64.b64encode(cifrada).decode("ascii"),
-    "fondo_cifrado": "#%02x%02x%02x" % desplazar_color(fondo, clave),
-    "corazon_cifrado": "#%02x%02x%02x" % desplazar_color(corazon, clave),
-    "pixeles_corazon": pixeles_rellenos,
-})
-`;
-
-const DECRYPT_SOURCE = String.raw`
-import base64
-import json
-import struct
-
-pixeles_rgba = bytearray(base64.b64decode(pixeles_entrada))
-clave = (desplazamiento_r, desplazamiento_g, desplazamiento_b)
-bytes_por_fila = ancho * 3
-relleno = (4 - bytes_por_fila % 4) % 4
-tamano_pixeles = (bytes_por_fila + relleno) * alto
-cabecera = struct.pack("<2sIHHI", b"BM", 54 + tamano_pixeles, 0, 0, 54)
-informacion = struct.pack("<IIIHHIIIIII", 40, ancho, alto, 1, 24, 0, tamano_pixeles, 2835, 2835, 0, 0)
-datos_bmp = bytearray()
-
-for y in range(alto - 1, -1, -1):
-    for x in range(ancho):
-        indice = (y * ancho + x) * 4
-        rojo = (pixeles_rgba[indice] - clave[0]) % 256
-        verde = (pixeles_rgba[indice + 1] - clave[1]) % 256
-        azul = (pixeles_rgba[indice + 2] - clave[2]) % 256
-        datos_bmp.extend((azul, verde, rojo))
-    datos_bmp.extend(b"\x00" * relleno)
-
-resultado = cabecera + informacion + datos_bmp
-json.dumps({"resultado": base64.b64encode(resultado).decode("ascii")})
-`;
-
-function bytesToBase64(bytes: Uint8ClampedArray) {
-  let binary = "";
-  for (let offset = 0; offset < bytes.length; offset += 32_768) {
-    binary += String.fromCharCode(
-      ...bytes.subarray(offset, Math.min(offset + 32_768, bytes.length)),
-    );
-  }
-  return window.btoa(binary);
-}
-
-function readAsDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error("No se pudo leer la imagen."));
-    reader.readAsDataURL(file);
-  });
-}
-
-function loadImage(url: string) {
-  return new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("El navegador no pudo decodificar el BMP."));
-    image.src = url;
-  });
-}
-
-function PreviewPanel({
-  eyebrow,
-  title,
-  image,
-  emptyText,
-  swatches,
-}: {
-  eyebrow: string;
-  title: string;
-  image: GeneratedImage | null;
-  emptyText: string;
-  swatches?: [string, string];
-}) {
-  return (
-    <article className="overflow-hidden rounded-[1.5rem] border border-orange-100/10 bg-[#100d0a]">
-      <div className="flex items-center justify-between border-b border-orange-100/10 px-5 py-4">
-        <div>
-          <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-stone-700">
-            {eyebrow}
-          </p>
-          <h3 className="mt-1 font-semibold text-stone-200">{title}</h3>
-        </div>
-        {swatches ? (
-          <div className="flex gap-2">
-            {swatches.map((color) => (
-              <span
-                key={color}
-                className="size-4 rounded-full border border-white/15"
-                style={{ background: color }}
-                title={color}
-              />
-            ))}
-          </div>
-        ) : null}
-      </div>
-      <div className="terminal-grid grid min-h-[320px] place-items-center p-6">
-        {image ? (
-          <img
-            src={image.url}
-            alt={title}
-            className="max-h-[420px] max-w-full rounded-lg border border-orange-100/10 bg-white object-contain shadow-2xl"
-          />
-        ) : (
-          <div className="max-w-xs text-center text-stone-700">
-            <ImageIcon className="mx-auto size-8" />
-            <p className="mt-4 text-sm leading-6">{emptyText}</p>
-          </div>
-        )}
-      </div>
-      <div className="border-t border-orange-100/10 p-4">
-        {image ? (
-          <a
-            href={image.url}
-            download={image.filename}
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-orange-100/10 text-sm text-stone-300 transition hover:bg-orange-300/5 hover:text-white"
-          >
-            <Download className="size-4" /> Descargar {image.filename}
-          </a>
-        ) : (
-          <span className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-orange-100/10 text-sm text-stone-700">
-            <Download className="size-4" /> Archivo aún no disponible
-          </span>
-        )}
-      </div>
-    </article>
-  );
-}
-
-const channels: Array<{
-  key: keyof RgbShift;
-  label: string;
-  color: string;
-  textClass: string;
-}> = [
-  { key: "r", label: "R · Rojo", color: "#f87171", textClass: "text-red-300" },
-  { key: "g", label: "G · Verde", color: "#4ade80", textClass: "text-green-300" },
-  { key: "b", label: "B · Azul", color: "#60a5fa", textClass: "text-blue-300" },
-];
-
-function RgbShiftControl({
-  value,
-  onChange,
-  operation,
-}: {
-  value: RgbShift;
-  onChange: (value: RgbShift) => void;
-  operation: "encrypt" | "decrypt";
-}) {
-  const symbol = operation === "encrypt" ? "+" : "−";
-  return (
-    <div className="space-y-4 rounded-2xl border border-orange-100/10 bg-[#0a0908] p-5">
-      <div className="flex items-center gap-2 text-sm font-semibold text-stone-300">
-        <SlidersHorizontal className="size-4 text-orange-400" />
-        Clave de desplazamiento RGB
-      </div>
-      {channels.map((channel) => (
-        <div key={channel.key}>
-          <div className="flex items-center justify-between">
-            <label
-              htmlFor={`${operation}-${channel.key}`}
-              className={`font-mono text-xs ${channel.textClass}`}
-            >
-              {channel.label}
-            </label>
-            <input
-              type="number"
-              min={0}
-              max={255}
-              value={value[channel.key]}
-              onChange={(event) =>
-                onChange({
-                  ...value,
-                  [channel.key]: Math.min(
-                    255,
-                    Math.max(0, Number.parseInt(event.target.value || "0", 10)),
-                  ),
-                })
-              }
-              className="h-8 w-20 rounded-lg border border-orange-100/10 bg-[#100d0a] text-center font-mono text-xs text-stone-200 outline-none focus:border-orange-400"
-              aria-label={`Desplazamiento ${channel.label}`}
-            />
-          </div>
-          <input
-            id={`${operation}-${channel.key}`}
-            type="range"
-            min={0}
-            max={255}
-            step={1}
-            value={value[channel.key]}
-            onChange={(event) =>
-              onChange({
-                ...value,
-                [channel.key]: Number.parseInt(event.target.value, 10),
-              })
-            }
-            className="mt-2 w-full"
-            style={{ accentColor: channel.color }}
-          />
-        </div>
-      ))}
-      <p className="border-t border-orange-100/10 pt-4 font-mono text-[11px] leading-5 text-stone-600">
-        {operation === "encrypt"
-          ? `Cifrado: (R ${symbol} ${value.r}, G ${symbol} ${value.g}, B ${symbol} ${value.b}) mod 256`
-          : `Descifrado: (R' ${symbol} ${value.r}, G' ${symbol} ${value.g}, B' ${symbol} ${value.b}) mod 256`}
-      </p>
-    </div>
-  );
-}
+const GENERATE_HEART_CALL = `generar_paquete_cifrado(
+    ancho,
+    alto,
+    escala,
+    color_fondo,
+    color_corazon,
+    desplazamiento_r,
+    desplazamiento_g,
+    desplazamiento_b,
+)`;
+const DECRYPT_IMAGE_CALL = `descifrar_pixeles_rgba_a_bmp(
+    pixeles_entrada,
+    ancho,
+    alto,
+    desplazamiento_r,
+    desplazamiento_g,
+    desplazamiento_b,
+)`;
 
 export default function PracticeOneDemo() {
   const runtimeRef = useRef<PyodideRuntime | null>(null);
-  const initializingRef = useRef(false);
-  const [status, setStatus] = useState<"loading" | "ready" | "running" | "error">(
-    "loading",
-  );
+  const [status, setStatus] = useState<RuntimeState>("loading");
   const [width, setWidth] = useState("320");
   const [height, setHeight] = useState("320");
   const [heartScale, setHeartScale] = useState("100");
   const [backgroundColor, setBackgroundColor] = useState("#fff7ed");
   const [heartColor, setHeartColor] = useState("#e11d48");
-  const [encryptKey, setEncryptKey] = useState<RgbShift>({ ...DEFAULT_KEY });
-  const [decryptKey, setDecryptKey] = useState<RgbShift>({ ...DEFAULT_KEY });
+  const [encryptKey, setEncryptKey] = useState<RgbShift>({ ...DEFAULT_RGB_SHIFT });
+  const [decryptKey, setDecryptKey] = useState<RgbShift>({ ...DEFAULT_RGB_SHIFT });
   const [original, setOriginal] = useState<GeneratedImage | null>(null);
   const [encrypted, setEncrypted] = useState<GeneratedImage | null>(null);
   const [encryptedBackground, setEncryptedBackground] = useState("#274765");
@@ -336,45 +80,26 @@ export default function PracticeOneDemo() {
   const [decrypted, setDecrypted] = useState<GeneratedImage | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const initializePython = useCallback(async () => {
-    if (runtimeRef.current || initializingRef.current || !window.loadPyodide) return;
-    initializingRef.current = true;
-    try {
-      runtimeRef.current = await window.loadPyodide({ indexURL: PYODIDE_BASE });
-      setStatus("ready");
-    } catch {
-      setStatus("error");
-      setError("No fue posible cargar Python. Revisa tu conexión e intenta nuevamente.");
-    } finally {
-      initializingRef.current = false;
-    }
-  }, []);
-
   useEffect(() => {
-    const existing = document.querySelector<HTMLScriptElement>(
-      "script[data-pyodide-loader]",
-    );
-    const onLoad = () => void initializePython();
-    if (window.loadPyodide) {
-      queueMicrotask(onLoad);
-      return;
-    }
-    if (existing) {
-      existing.addEventListener("load", onLoad);
-      return () => existing.removeEventListener("load", onLoad);
-    }
-    const script = document.createElement("script");
-    script.src = `${PYODIDE_BASE}pyodide.js`;
-    script.async = true;
-    script.dataset.pyodideLoader = "true";
-    script.addEventListener("load", onLoad);
-    script.addEventListener("error", () => {
-      setStatus("error");
-      setError("No fue posible descargar Pyodide.");
-    });
-    document.head.appendChild(script);
-    return () => script.removeEventListener("load", onLoad);
-  }, [initializePython]);
+    let cancelled = false;
+
+    void loadPythonRuntime()
+      .then((runtime) => {
+        if (cancelled) return;
+        runtime.runPython(pythonSource);
+        runtimeRef.current = runtime;
+        setStatus("ready");
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setStatus("error");
+        setError("No fue posible cargar Python. Revisa tu conexión e intenta nuevamente.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function validateHeart() {
     const parsedWidth = Number.parseInt(width, 10);
@@ -424,7 +149,7 @@ export default function PracticeOneDemo() {
       runtime.globals.set("desplazamiento_g", encryptKey.g);
       runtime.globals.set("desplazamiento_b", encryptKey.b);
       const parsed = JSON.parse(
-        String(runtime.runPython(HEART_SOURCE)),
+        String(runtime.runPython(GENERATE_HEART_CALL)),
       ) as HeartResult;
       setOriginal({
         url: `data:image/bmp;base64,${parsed.original}`,
@@ -506,11 +231,9 @@ export default function PracticeOneDemo() {
       runtime.globals.set("desplazamiento_r", decryptKey.r);
       runtime.globals.set("desplazamiento_g", decryptKey.g);
       runtime.globals.set("desplazamiento_b", decryptKey.b);
-      const parsed = JSON.parse(
-        String(runtime.runPython(DECRYPT_SOURCE)),
-      ) as { resultado: string };
+      const resultBase64 = String(runtime.runPython(DECRYPT_IMAGE_CALL));
       setDecrypted({
-        url: `data:image/bmp;base64,${parsed.resultado}`,
+        url: `data:image/bmp;base64,${resultBase64}`,
         filename: "img_c_d.bmp",
       });
       setStatus("ready");
@@ -526,7 +249,7 @@ export default function PracticeOneDemo() {
     setHeartScale("100");
     setBackgroundColor("#fff7ed");
     setHeartColor("#e11d48");
-    setEncryptKey({ ...DEFAULT_KEY });
+    setEncryptKey({ ...DEFAULT_RGB_SHIFT });
     setOriginal(null);
     setEncrypted(null);
     setEncryptedBackground("#274765");
@@ -536,21 +259,13 @@ export default function PracticeOneDemo() {
   }
 
   function resetBetito() {
-    setDecryptKey({ ...DEFAULT_KEY });
+    setDecryptKey({ ...DEFAULT_RGB_SHIFT });
     setReceived(null);
     setDecrypted(null);
     setError(null);
   }
 
   const busy = status === "loading" || status === "running";
-  const statusLabel =
-    status === "ready"
-      ? "Python listo"
-      : status === "running"
-        ? "Procesando"
-        : status === "error"
-          ? "Error"
-          : "Cargando Python";
 
   return (
     <div className="space-y-8">
@@ -564,22 +279,7 @@ export default function PracticeOneDemo() {
               Crear un corazón y generar img_c.bmp
             </h2>
           </div>
-          <div
-            className={`flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider ${
-              status === "ready"
-                ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-200"
-                : status === "error"
-                  ? "border-red-300/25 bg-red-300/10 text-red-200"
-                  : "border-orange-300/20 bg-orange-300/5 text-orange-200"
-            }`}
-          >
-            {busy ? (
-              <LoaderCircle className="size-3 animate-spin" />
-            ) : (
-              <span className="size-1.5 rounded-full bg-current" />
-            )}
-            {statusLabel}
-          </div>
+          <RuntimeStatus status={status} />
         </div>
 
         <div className="grid gap-px bg-orange-100/10 lg:grid-cols-[1fr_0.9fr]">
@@ -695,14 +395,14 @@ export default function PracticeOneDemo() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <PreviewPanel
+        <ImagePreviewPanel
           eyebrow="Antes del cifrado"
           title="Corazón original"
           image={original}
           swatches={[backgroundColor, heartColor]}
           emptyText="Alicia debe crear y cifrar el corazón para mostrar el original."
         />
-        <PreviewPanel
+        <ImagePreviewPanel
           eyebrow={`Cifrado · R+${encryptKey.r} G+${encryptKey.g} B+${encryptKey.b}`}
           title="Archivo para compartir"
           image={encrypted}
@@ -753,28 +453,14 @@ export default function PracticeOneDemo() {
               <UserRoundCheck className="size-4 text-orange-400" />
               Archivo recibido por Betito
             </div>
-            <label className="grid min-h-52 cursor-pointer place-items-center rounded-2xl border border-dashed border-orange-300/25 bg-[#0a0908] p-8 text-center transition hover:border-orange-300/60">
-              <input
-                type="file"
-                accept=".bmp,image/bmp"
-                className="sr-only"
-                onChange={(event) => void selectEncryptedFile(event.target.files?.[0])}
-              />
-              <span>
-                <Upload className="mx-auto size-8 text-orange-400" />
-                <span className="mt-4 block font-medium text-stone-200">
-                  {received ? received.filename : "Seleccionar img_c.bmp"}
-                </span>
-                <span className="mt-2 block text-xs leading-5 text-stone-600">
-                  Archivo BMP · máximo 12 MB
-                </span>
-                {received ? (
-                  <span className="mt-3 block font-mono text-[10px] text-orange-300">
-                    {received.width} × {received.height} px
-                  </span>
-                ) : null}
-              </span>
-            </label>
+            <FileDrop
+              accept=".bmp,image/bmp"
+              emptyLabel="Seleccionar img_c.bmp"
+              filename={received?.filename ?? null}
+              hint="Archivo BMP · máximo 12 MB"
+              metadata={received ? `${received.width} × ${received.height} px` : undefined}
+              onFile={(file) => void selectEncryptedFile(file)}
+            />
           </div>
 
           <div className="bg-[#0e0c09] p-6 sm:p-8">
@@ -811,13 +497,13 @@ export default function PracticeOneDemo() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <PreviewPanel
+        <ImagePreviewPanel
           eyebrow="Recibido por Betito"
           title="BMP cifrado"
           image={received}
           emptyText="Betito debe cargar aquí el archivo img_c.bmp."
         />
-        <PreviewPanel
+        <ImagePreviewPanel
           eyebrow={`Descifrado · R−${decryptKey.r} G−${decryptKey.g} B−${decryptKey.b}`}
           title="Corazón recuperado"
           image={decrypted}
