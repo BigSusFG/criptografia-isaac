@@ -1,22 +1,137 @@
 ---
-import { KeyRound } from "lucide-react";
+import { Download, KeyRound } from "lucide-react";
 
 const rawBase = import.meta.env.BASE_URL;
 const base = rawBase.endsWith("/") ? rawBase : `${rawBase}/`;
 ---
 
-<header class="absolute inset-x-0 top-0 z-40 border-b border-orange-100/10 bg-[#0a0908]/78 backdrop-blur-xl">
+<header class="sticky top-0 z-50 border-b border-cyan-500/20 bg-[#070d18]/85 backdrop-blur-xl">
   <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 md:px-8">
-    <a href={base} class="flex items-center gap-3" aria-label="Ir al inicio">
-      <span class="grid size-9 place-items-center rounded-full border border-orange-300/30 bg-orange-300/10 text-orange-300">
-        <KeyRound size={16} />
-      </span>
-      <span class="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-stone-200">IMR / Crypto</span>
+    <!-- Brand Crest -->
+    <a href={`${base}#hero`} class="group flex items-center gap-3.5" aria-label="Ir al inicio - Isaac Montoya">
+      <div class="relative grid size-10 place-items-center rounded-xl border border-cyan-400/30 bg-cyan-950/40 text-cyan-300 shadow-[0_0_15px_rgba(56,189,248,0.2)] transition group-hover:border-cyan-300 group-hover:shadow-[0_0_22px_rgba(56,189,248,0.4)]">
+        <!-- SVG Snow Leopard Rosette Crest -->
+        <svg class="size-5 transition group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m8 3 4 8 5-5 5 15H2L8 3z" stroke="currentColor" class="text-cyan-400" />
+          <circle cx="12" cy="14" r="2.5" fill="#fde047" stroke="#fde047" stroke-width="0.5" />
+          <circle cx="9" cy="17" r="1.2" fill="#38bdf8" stroke="none" />
+          <circle cx="15" cy="17" r="1.2" fill="#38bdf8" stroke="none" />
+        </svg>
+        <span class="absolute -bottom-1 -right-1 size-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#38bdf8]"></span>
+      </div>
+      <div>
+        <span class="block font-crest text-sm font-bold tracking-[0.14em] text-white transition group-hover:text-cyan-200">
+          ISAAC MONTOYA
+        </span>
+        <span class="block font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-300/70">
+          ESCOM · IPN · CRIPTO
+        </span>
+      </div>
     </a>
 
-    <nav aria-label="Navegación principal" class="flex items-center gap-5 font-mono text-[11px] uppercase tracking-[0.14em] text-stone-500 sm:gap-8">
-      <a href={`${base}#practicas`} class="transition hover:text-orange-300">Prácticas</a>
-      <a href={`${base}#arquitectura`} class="hidden transition hover:text-orange-300 sm:block">Arquitectura</a>
+    <!-- Desktop Navigation Links -->
+    <nav aria-label="Navegación principal" class="hidden items-center gap-6 font-mono text-[11px] uppercase tracking-[0.16em] text-slate-400 lg:flex">
+      <a href={`${base}#formacion`} class="transition hover:text-cyan-300">Formación</a>
+      <a href={`${base}#hobbies`} class="transition hover:text-cyan-300">Hobbies</a>
+      <a href={`${base}#criptografia`} class="transition hover:text-cyan-300">Criptografía</a>
+      <a href={`${base}#crypto-assets`} class="transition hover:text-cyan-300">Descargas</a>
+      <a href={`${base}#practicas`} class="transition hover:text-cyan-300">Prácticas</a>
+    </nav>
+
+    <!-- Call to Actions -->
+    <div class="flex items-center gap-3">
+      <a
+        href={`${base}#mi-llave-publica`}
+        class="hidden items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3.5 py-1.5 font-mono text-[11px] tracking-wider text-cyan-200 shadow-[0_0_12px_rgba(56,189,248,0.15)] transition hover:border-cyan-300 hover:bg-cyan-500/20 sm:inline-flex"
+      >
+        <KeyRound size={13} className="text-cyan-400" />
+        <span>Llave Pública</span>
+      </a>
+
+      <a
+        href={`${base}cv.pdf`}
+        download="CV_Isaac_Montoya_ESCOM.pdf"
+        class="inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-gradient-to-r from-cyan-500/90 to-blue-600/90 px-4 py-1.5 text-xs font-semibold text-white shadow-[0_0_20px_rgba(56,189,248,0.35)] transition hover:from-cyan-400 hover:to-blue-500 hover:shadow-[0_0_28px_rgba(56,189,248,0.5)]"
+      >
+        <Download size={13} />
+        <span>CV PDF</span>
+      </a>
+
+      <!-- Mobile Menu Toggle Button -->
+      <button
+        id="mobile-menu-btn"
+        type="button"
+        class="grid size-9 place-items-center rounded-lg border border-cyan-500/20 bg-slate-900/60 text-slate-300 transition hover:border-cyan-400/40 hover:text-white lg:hidden"
+        aria-label="Abrir menú"
+      >
+        <svg id="menu-icon-bars" class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+        </svg>
+        <svg id="menu-icon-close" class="hidden size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Dropdown Menu -->
+  <div id="mobile-menu" class="hidden border-b border-cyan-500/20 bg-[#091120]/95 px-5 py-6 backdrop-blur-2xl lg:hidden">
+    <nav class="flex flex-col gap-4 font-mono text-xs uppercase tracking-[0.16em] text-slate-300">
+      <a href={`${base}#hero`} class="mobile-link flex items-center justify-between py-2 transition hover:text-cyan-300">
+        <span>Inicio</span>
+        <span class="text-[10px] text-cyan-400/50">00</span>
+      </a>
+      <a href={`${base}#formacion`} class="mobile-link flex items-center justify-between py-2 transition hover:text-cyan-300">
+        <span>Formación Académica</span>
+        <span class="text-[10px] text-cyan-400/50">01</span>
+      </a>
+      <a href={`${base}#hobbies`} class="mobile-link flex items-center justify-between py-2 transition hover:text-cyan-300">
+        <span>Hobbies & Galería</span>
+        <span class="text-[10px] text-cyan-400/50">02</span>
+      </a>
+      <a href={`${base}#criptografia`} class="mobile-link flex items-center justify-between py-2 transition hover:text-cyan-300">
+        <span>Acerca de Criptografía</span>
+        <span class="text-[10px] text-cyan-400/50">03</span>
+      </a>
+      <a href={`${base}#crypto-assets`} class="mobile-link flex items-center justify-between py-2 transition hover:text-cyan-300">
+        <span>Descargas & Llave RSA</span>
+        <span class="text-[10px] text-cyan-400/50">04</span>
+      </a>
+      <a href={`${base}#practicas`} class="mobile-link flex items-center justify-between py-2 transition hover:text-cyan-300">
+        <span>Prácticas</span>
+        <span class="text-[10px] text-cyan-400/50">05</span>
+      </a>
     </nav>
   </div>
 </header>
+
+<script>
+  const menuBtn = document.getElementById("mobile-menu-btn");
+  const menu = document.getElementById("mobile-menu");
+  const iconBars = document.getElementById("menu-icon-bars");
+  const iconClose = document.getElementById("menu-icon-close");
+  const links = document.querySelectorAll(".mobile-link");
+
+  if (menuBtn && menu && iconBars && iconClose) {
+    menuBtn.addEventListener("click", () => {
+      const isExpanded = !menu.classList.contains("hidden");
+      if (isExpanded) {
+        menu.classList.add("hidden");
+        iconBars.classList.remove("hidden");
+        iconClose.classList.add("hidden");
+      } else {
+        menu.classList.remove("hidden");
+        iconBars.classList.add("hidden");
+        iconClose.classList.remove("hidden");
+      }
+    });
+
+    links.forEach((link) => {
+      link.addEventListener("click", () => {
+        menu.classList.add("hidden");
+        iconBars.classList.remove("hidden");
+        iconClose.classList.add("hidden");
+      });
+    });
+  }
+</script>
