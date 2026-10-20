@@ -1,30 +1,23 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ink: #070d18;
-  --color-frost-bg: #070d18;
-  --color-frost-card: #0b1322;
-  --color-glacier-50: #f0f9ff;
-  --color-glacier-100: #e0f2fe;
-  --color-glacier-200: #bae6fd;
-  --color-glacier-300: #7dd3fc;
-  --color-glacier-400: #38bdf8;
-  --color-glacier-500: #0ea5e9;
-  --color-glacier-600: #0284c7;
-  --color-rosette-100: #fef9c3;
-  --color-rosette-200: #fef08a;
-  --color-rosette-300: #fde047;
-  --color-rosette-400: #facc15;
-  --color-slate-ice: #94a3b8;
-  --font-serif-crest: "Cinzel", "Times New Roman", serif;
+  --color-cream-bg: #f8f6f0;
+  --color-warm-ink: #2b2723;
+  --color-warm-muted: #6e675f;
+  --color-pastel-rose: #fbcfe8;
+  --color-pastel-peach: #fed7aa;
+  --color-pastel-lavender: #e9d5ff;
+  --color-pastel-mint: #bbf7d0;
+  --color-pastel-sky: #bae6fd;
+  --font-display: "Outfit", "Plus Jakarta Sans", system-ui, sans-serif;
   --font-sans: "Plus Jakarta Sans", Inter, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
 :root {
-  color-scheme: dark;
-  background-color: #070d18;
-  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  color-scheme: light;
+  background-color: #f8f6f0;
+  font-family: var(--font-sans);
 }
 
 html {
@@ -35,123 +28,120 @@ html {
 body {
   min-width: 320px;
   margin: 0;
-  background-color: #070d18;
-  color: #f1f5f9;
+  background-color: #f8f6f0;
+  color: #2b2723;
   overflow-x: hidden;
-  selection-background-color: rgba(56, 189, 248, 0.3);
 }
 
 ::selection {
-  background: rgba(56, 189, 248, 0.35);
-  color: #ffffff;
+  background: rgba(244, 114, 182, 0.28);
+  color: #1c1917;
 }
 
-/* Background Atmosphere: Snow Leopard & Mountain Cryptography */
-.snow-cipher-grid {
-  background-color: #070d18;
+/* Dreamy Pastel Ambient Mesh Background */
+.bento-ambient-bg {
+  background-color: #f8f6f0;
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -15%, rgba(56, 189, 248, 0.18), transparent 70%),
-    radial-gradient(circle 600px at 85% 25%, rgba(14, 165, 233, 0.08), transparent 60%),
-    radial-gradient(circle 500px at 15% 65%, rgba(253, 224, 71, 0.035), transparent 50%),
-    radial-gradient(circle 700px at 50% 90%, rgba(56, 189, 248, 0.06), transparent 70%),
-    linear-gradient(rgba(56, 189, 248, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+    radial-gradient(circle 800px at 10% 5%, rgba(254, 215, 170, 0.45), transparent 70%),
+    radial-gradient(circle 750px at 90% 12%, rgba(251, 207, 232, 0.5), transparent 65%),
+    radial-gradient(circle 700px at 20% 45%, rgba(233, 213, 255, 0.4), transparent 65%),
+    radial-gradient(circle 850px at 85% 60%, rgba(186, 230, 253, 0.45), transparent 65%),
+    radial-gradient(circle 800px at 40% 95%, rgba(254, 215, 170, 0.4), transparent 70%),
+    radial-gradient(rgba(120, 113, 108, 0.08) 1.2px, transparent 1.2px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 28px 28px;
 }
 
-.glacial-aurora {
+/* Floating Soft Ambient Glow Blobs */
+.soft-glow-blob {
   position: absolute;
   pointer-events: none;
-  filter: blur(80px);
-  opacity: 0.45;
+  filter: blur(70px);
   border-radius: 9999px;
+  opacity: 0.6;
+  z-index: 0;
 }
 
-/* Frosted Glassmorphism Components */
-.glass-frost {
-  background: rgba(11, 19, 34, 0.75);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(56, 189, 248, 0.16);
-  box-shadow: 0 10px 35px -10px rgba(2, 6, 23, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
-}
-
-.glass-frost-card {
-  background: rgba(13, 23, 42, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(56, 189, 248, 0.14);
-  box-shadow: 0 12px 36px -8px rgba(3, 7, 18, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+/* Bento Soft Glassmorphism Cards */
+.bento-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 1.75rem; /* rounded-3xl */
+  box-shadow:
+    0 10px 30px -5px rgba(212, 197, 181, 0.28),
+    0 4px 12px -2px rgba(212, 197, 181, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.glass-frost-card:hover {
-  background: rgba(15, 27, 49, 0.85);
-  border-color: rgba(56, 189, 248, 0.4);
-  box-shadow: 0 16px 45px -8px rgba(6, 182, 212, 0.16), 0 0 25px -4px rgba(56, 189, 248, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
-  transform: translateY(-2px);
+.bento-card:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.92);
+  border-color: #ffffff;
+  box-shadow:
+    0 22px 42px -6px rgba(212, 197, 181, 0.4),
+    0 8px 20px -2px rgba(244, 114, 182, 0.12),
+    inset 0 1px 0 #ffffff;
 }
 
-.glass-frost-badge {
-  background: rgba(56, 189, 248, 0.08);
-  border: 1px solid rgba(56, 189, 248, 0.25);
+/* Bento Subcard for nested elements */
+.bento-subcard {
+  background: rgba(248, 246, 240, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(230, 224, 215, 0.75);
+  border-radius: 1.25rem;
 }
 
-.glass-rosette-badge {
-  background: rgba(253, 224, 71, 0.08);
-  border: 1px solid rgba(253, 224, 71, 0.28);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+/* Soft Pastel Pills & Badges */
+.pill-soft-rose {
+  background: rgba(251, 207, 232, 0.55);
+  border: 1px solid rgba(244, 114, 182, 0.35);
+  color: #9d174d;
 }
 
-/* Typography Enhancements */
-.font-crest {
-  font-family: var(--font-serif-crest);
+.pill-soft-lavender {
+  background: rgba(233, 213, 255, 0.55);
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  color: #6b21a8;
 }
 
-.text-gradient-ice {
-  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 45%, #7dd3fc 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.pill-soft-peach {
+  background: rgba(254, 215, 170, 0.55);
+  border: 1px solid rgba(251, 146, 60, 0.35);
+  color: #9a3412;
 }
 
-.text-gradient-cyan {
-  background: linear-gradient(135deg, #e0f2fe 0%, #38bdf8 55%, #0284c7 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.pill-soft-sky {
+  background: rgba(186, 230, 253, 0.55);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #0369a1;
 }
 
-.text-gradient-gold {
-  background: linear-gradient(135deg, #ffffff 0%, #fef08a 50%, #f59e0b 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.pill-soft-mint {
+  background: rgba(187, 247, 208, 0.55);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  color: #15803d;
 }
 
-/* Watermark Pattern with Snow Leopard Rosettes & Cryptographic Nodes */
-.rosette-watermark {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='none' stroke='%2338bdf8' stroke-width='0.8' stroke-opacity='0.08'%3E%3C!-- Rosette Polygon Center --%3E%3Ccircle cx='80' cy='80' r='18' stroke-dasharray='3 3'/%3E%3Ccircle cx='80' cy='80' r='8' stroke='%23fde047' stroke-opacity='0.09'/%3E%3Cpath d='M72,66 C75,60 85,60 88,66 C94,68 98,75 96,82 C98,88 92,96 85,96 C79,97 73,94 70,88 C65,82 66,72 72,66 Z' /%3E%3Ccircle cx='76' cy='74' r='2' fill='%2338bdf8' fill-opacity='0.12'/%3E%3Ccircle cx='84' cy='78' r='1.8' fill='%23fde047' fill-opacity='0.12'/%3E%3Ccircle cx='78' cy='84' r='2' fill='%2338bdf8' fill-opacity='0.12'/%3E%3C!-- Crypto Nodes and Hex Rays --%3E%3Cpath d='M80,20 L80,50 M80,110 L80,140 M20,80 L50,80 M110,80 L140,80' stroke-opacity='0.05'/%3E%3Ccircle cx='80' cy='20' r='2.5'/%3E%3Ccircle cx='140' cy='80' r='2.5'/%3E%3Ccircle cx='80' cy='140' r='2.5'/%3E%3Ccircle cx='20' cy='80' r='2.5'/%3E%3Cpolygon points='80,35 119,57 119,103 80,125 41,103 41,57' stroke-opacity='0.04'/%3E%3C/g%3E%3C/svg%3E");
-}
-
-/* Shimmer animation for ice frost highlights */
-@keyframes frostGlow {
+/* Cute Float Animation */
+@keyframes cuteFloat {
   0%, 100% {
-    opacity: 0.3;
-    transform: scale(1);
+    transform: translateY(0);
   }
   50% {
-    opacity: 0.6;
-    transform: scale(1.05);
+    transform: translateY(-5px);
   }
 }
 
-.animate-frost-glow {
-  animation: frostGlow 7s ease-in-out infinite;
+.animate-cute-float {
+  animation: cuteFloat 4s ease-in-out infinite;
 }
 
-/* Toast alert notification for clipboard actions */
-.frost-toast {
+/* Soft Toast Alert */
+.soft-toast {
   position: fixed;
   bottom: 2rem;
   right: 2rem;
@@ -161,12 +151,12 @@ body {
   gap: 0.75rem;
   padding: 0.85rem 1.4rem;
   border-radius: 9999px;
-  background: rgba(11, 19, 34, 0.95);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(56, 189, 248, 0.5);
-  box-shadow: 0 10px 40px rgba(6, 182, 212, 0.25);
-  color: #f0f9ff;
+  border: 1px solid rgba(244, 114, 182, 0.4);
+  box-shadow: 0 14px 35px -5px rgba(244, 114, 182, 0.25), 0 4px 12px rgba(0, 0, 0, 0.05);
+  color: #2b2723;
   font-size: 0.875rem;
   font-weight: 500;
   transform: translateY(120%);
@@ -175,7 +165,7 @@ body {
   pointer-events: none;
 }
 
-.frost-toast.show {
+.soft-toast.show {
   transform: translateY(0);
   opacity: 1;
   pointer-events: auto;
@@ -185,7 +175,7 @@ body {
   html {
     scroll-behavior: auto;
   }
-  .animate-frost-glow {
+  .animate-cute-float {
     animation: none;
   }
 }
